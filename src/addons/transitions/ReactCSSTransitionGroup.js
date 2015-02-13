@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2015, Facebook, Inc.
+ * Copyright 2013-2014, Facebook, Inc.
  * All rights reserved.
  *
  * This source code is licensed under the BSD-style license found in the
@@ -10,32 +10,32 @@
  * @providesModule ReactCSSTransitionGroup
  */
 
-'use strict';
+"use strict";
 
-var React = require('React');
+var React = require("./React");
 
-var assign = require('Object.assign');
+var assign = require("./Object.assign");
 
 var ReactTransitionGroup = React.createFactory(
-  require('ReactTransitionGroup')
+  require("./ReactTransitionGroup")
 );
 var ReactCSSTransitionGroupChild = React.createFactory(
-  require('ReactCSSTransitionGroupChild')
+  require("./ReactCSSTransitionGroupChild")
 );
 
 var ReactCSSTransitionGroup = React.createClass({
   displayName: 'ReactCSSTransitionGroup',
 
   propTypes: {
-    transitionName: React.PropTypes.string.isRequired,
-    transitionAppear: React.PropTypes.bool,
+    transitionName: React.PropTypes.oneOfType([
+        React.PropTypes.string,
+        React.PropTypes.objectOf(React.PropTypes.string) ]).isRequired,
     transitionEnter: React.PropTypes.bool,
     transitionLeave: React.PropTypes.bool
   },
 
   getDefaultProps: function() {
     return {
-      transitionAppear: false,
       transitionEnter: true,
       transitionLeave: true
     };
@@ -48,7 +48,6 @@ var ReactCSSTransitionGroup = React.createClass({
     return ReactCSSTransitionGroupChild(
       {
         name: this.props.transitionName,
-        appear: this.props.transitionAppear,
         enter: this.props.transitionEnter,
         leave: this.props.transitionLeave
       },

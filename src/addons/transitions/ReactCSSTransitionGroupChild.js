@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2015, Facebook, Inc.
+ * Copyright 2013-2014, Facebook, Inc.
  * All rights reserved.
  *
  * This source code is licensed under the BSD-style license found in the
@@ -10,15 +10,14 @@
  * @providesModule ReactCSSTransitionGroupChild
  */
 
-'use strict';
+"use strict";
 
-var React = require('React');
+var React = require("./React");
 
-var CSSCore = require('CSSCore');
-var ReactTransitionEvents = require('ReactTransitionEvents');
+var CSSCore = require("./CSSCore");
+var ReactTransitionEvents = require("./ReactTransitionEvents");
 
-var onlyChild = require('onlyChild');
-var warning = require('warning');
+var onlyChild = require("./onlyChild");
 
 // We don't remove the element from the DOM until we receive an animationend or
 // transitionend event. If the user screws up and forgets to add an animation
@@ -30,15 +29,13 @@ var NO_EVENT_TIMEOUT = 5000;
 var noEventListener = null;
 
 
-if (__DEV__) {
+if ("production" !== process.env.NODE_ENV) {
   noEventListener = function() {
-    warning(
-      false,
+    console.warn(
       'transition(): tried to perform an animation without ' +
       'an animationend or transitionend event after timeout (' +
-      '%sms). You should either disable this ' +
-      'transition in JS or add a CSS animation/transition.',
-      NO_EVENT_TIMEOUT
+      NO_EVENT_TIMEOUT + 'ms). You should either disable this ' +
+      'transition in JS or add a CSS animation/transition.'
     );
   };
 }
@@ -48,15 +45,30 @@ var ReactCSSTransitionGroupChild = React.createClass({
 
   transition: function(animationType, finishCallback) {
     var node = this.getDOMNode();
-    var className = this.props.name + '-' + animationType;
-    var activeClassName = className + '-active';
+    var className, activeClassName;
+
+    if(typeof this.props.name == 'string') {
+      className = this.props.name + '-' + animationType;
+      activeClassName = className + '-active';
+    }
+    if(typeof this.props.name == 'object') {
+      if(this.props.name[animationType]) {
+        className = this.props.name[animationType];
+      }
+
+      else {
+        className = this.props.name.name + '-' + animationType;
+      }
+      activeClassName = this.props.name.name + '-active';
+    }
+    console.log(animationType, activeClassName, className);
     var noEventTimeout = null;
 
     var endListener = function(e) {
       if (e && e.target !== node) {
         return;
       }
-      if (__DEV__) {
+      if ("production" !== process.env.NODE_ENV) {
         clearTimeout(noEventTimeout);
       }
 
@@ -67,9 +79,7 @@ var ReactCSSTransitionGroupChild = React.createClass({
 
       // Usually this optional callback is used for informing an owner of
       // a leave animation and telling it to remove the child.
-      if (finishCallback) {
-        finishCallback();
-      }
+      finishCallback && finishCallback();
     };
 
     ReactTransitionEvents.addEndEventListener(node, endListener);
@@ -79,7 +89,7 @@ var ReactCSSTransitionGroupChild = React.createClass({
     // Need to do this to actually trigger a transition.
     this.queueClass(activeClassName);
 
-    if (__DEV__) {
+    if ("production" !== process.env.NODE_ENV) {
       noEventTimeout = setTimeout(noEventListener, NO_EVENT_TIMEOUT);
     }
   },
@@ -109,14 +119,6 @@ var ReactCSSTransitionGroupChild = React.createClass({
   componentWillUnmount: function() {
     if (this.timeout) {
       clearTimeout(this.timeout);
-    }
-  },
-
-  componentWillAppear: function(done) {
-    if (this.props.appear) {
-      this.transition('appear', done);
-    } else {
-      done();
     }
   },
 
